@@ -1,51 +1,73 @@
-// Step 1: HTML elements pakdo
+// HTML elements pakdo
 const taskInput = document.getElementById('taskInput');
 const addBtn = document.getElementById('addBtn');
 const taskList = document.getElementById('taskList');
 
-// Step 2: Button suno
-addBtn.addEventListener('click', function () {
+// ✅ localStorage se tasks load karo
+function loadTasks() {
+  const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+  tasks.forEach(task => renderTask(task.text, task.completed));
+}
 
-  const taskText = taskInput.value.trim();
+// ✅ localStorage mein tasks save karo
+function saveTasks() {
+  const items = taskList.querySelectorAll('li');
+  const tasks = [];
+  items.forEach(item => {
+    tasks.push({
+      text: item.querySelector('.task-text').textContent,
+      completed: item.classList.contains('completed')
+    });
+  });
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+}
 
-  // Khali input check
-  if (taskText === '') {
-    alert('Kuch toh likho bhai! 😄');
-    return;
-  }
-
-  // Naya <li> banao
+// ✅ Task UI banana — ek function mein
+function renderTask(text, completed = false) {
   const newTask = document.createElement('li');
+  if (completed) newTask.classList.add('completed');
+
   newTask.innerHTML = `
-    <span class="task-text">${taskText}</span>
+    <span class="task-text">${text}</span>
     <div class="task-buttons">
       <button class="done-btn">✔️</button>
       <button class="delete-btn">🗑️</button>
     </div>
   `;
 
-  // ✔️ Done button ka kaam
-  const doneBtn = newTask.querySelector('.done-btn');
-  doneBtn.addEventListener('click', function () {
+  // Done button
+  newTask.querySelector('.done-btn').addEventListener('click', function() {
     newTask.classList.toggle('completed');
+    saveTasks();
   });
 
-  // 🗑️ Delete button ka kaam
-  const deleteBtn = newTask.querySelector('.delete-btn');
-  deleteBtn.addEventListener('click', function () {
+  // Delete button
+  newTask.querySelector('.delete-btn').addEventListener('click', function() {
     taskList.removeChild(newTask);
+    saveTasks();
   });
 
-  // List mein daalo
   taskList.appendChild(newTask);
+}
 
-  // Input khali karo
+// ✅ Add button
+addBtn.addEventListener('click', function() {
+  const taskText = taskInput.value.trim();
+
+  if (taskText === '') {
+    alert('Kuch toh likho bhai! 😄');
+    return;
+  }
+
+  renderTask(taskText);
+  saveTasks();
   taskInput.value = '';
 });
 
-// Enter key se bhi task add ho
-taskInput.addEventListener('keypress', function (e) {
-  if (e.key === 'Enter') {
-    addBtn.click();
-  }
+// ✅ Enter key support
+taskInput.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') addBtn.click();
 });
+
+// ✅ Page load hone pe tasks wapas laao
+loadTasks();
